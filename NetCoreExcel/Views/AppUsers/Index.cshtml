@@ -7,8 +7,10 @@
 <h1>Index</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a href="#import-modal" data-toggle="modal">Import</a>
 </p>
+
+
 <table class="table">
     <thead>
         <tr>
@@ -63,10 +65,15 @@
             <td>
                 <a asp-action="Edit" asp-route-id="@item.UserId">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.UserId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.UserId">Delete</a> |
-                    <a asp-action="UserReport" asp-route-id="@item.UserId">Report</a>
+                <a asp-action="Delete" asp-route-id="@item.UserId">Delete</a>
             </td>
         </tr>
 }
     </tbody>
 </table>
+
+<partial name="_ImportModal" />
+
+@section scripts {
+    <script src="@Url.Content("~/Views/AppUsers/js/import.js")"></script>
+}               

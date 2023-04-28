@@ -175,13 +175,13 @@ namespace NetCoreExcel.Controllers
         // POST: AppUsers/Delete/5
         [HttpPost, ActionName("Import")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Import(IFormFile file)
+        public async Task<string> Import(IFormFile importFile)
         {
             try
             {
                 // Check the File is received
 
-                if (file == null)
+                if (importFile == null)
                     throw new Exception("File is Not Received...");
 
 
@@ -193,7 +193,7 @@ namespace NetCoreExcel.Controllers
                 }
 
                 // Make sure that only Excel file is used 
-                string dataFileName = Path.GetFileName(file.FileName);
+                string dataFileName = Path.GetFileName(importFile.FileName);
 
                 string extension = Path.GetExtension(dataFileName);
 
@@ -208,7 +208,7 @@ namespace NetCoreExcel.Controllers
 
                 using (FileStream stream = new FileStream(saveToPath, FileMode.Create))
                 {
-                    file.CopyTo(stream);
+                    importFile.CopyTo(stream);
                 }
 
                 // USe this to handle Encodeing differences in .NET Core
@@ -238,25 +238,33 @@ namespace NetCoreExcel.Controllers
                             user.Email = userData.Rows[i][3].ToString();
                             user.Phone = userData.Rows[i][4].ToString();
                             user.Zipcode = userData.Rows[i][5].ToString();
-                            string? Employer = userData.Rows[i][6].ToString();
-
 
                             // Add the record in Database
                             await _context.AppUsers.AddAsync(user);
                             await _context.SaveChangesAsync();
+
+                            string? _employer = userData.Rows[i][6].ToString();
+
+                            // Check if the employer exists in the employer table
+                            Employer? Employer = await _context.Employers.FirstOrDefaultAsync(e => e.Name == _employer);
+
+                            if (Employer == null)
+                            {
+                               await _context.Employers.AddAsync(Employer);
+                               await _context.SaveChangesAsync();
+                            }
+
+                            
+
+
                         }
                     }
                 }
-                return RedirectToAction("Index");
+                return "Import successful!";
             }
             catch (Exception ex)
             {
-                return View("Error", new ErrorViewModel()
-                {
-                    ControllerName = this.RouteData.Values["controller"].ToString(),
-                    ActionName = this.RouteData.Values["action"].ToString(),
-                    ErrorMessage = ex.Message
-                });
+                return "Import failed: " + ex.Message;
             }
         }
 
